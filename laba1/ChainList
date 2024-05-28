@@ -1,0 +1,197 @@
+using System;
+
+namespace laba1.cs
+{
+    public class ChainList
+    {
+        // Внутренний класс для узла списка
+        private class Node
+        {
+            public int Data; // данные в узле
+            public Node Next; // ссылка на следующий узел
+
+            // Конструктор для создания узла с данными
+            public Node(int data)
+            {
+                Data = data; // инициализация данных
+                Next = null; // начальное условие
+            }
+        }
+
+        private Node head; // головной узел списка
+        private int cnt; // количество узлов в списке
+
+        // Создание пустого списка
+        public ChainList()
+        {
+            head = null; // голова списка 
+            cnt = 0; // начальное количество узлов 0
+        }
+
+        // Метод для добавления узла в конец списка
+        public void Add(int data)
+        {
+            Node newNode = new Node(data); // создаем новый узел с данными
+            if (head == null) // если список пуст
+            {
+                head = newNode; // новый узел становится головным
+            }
+            else
+            {
+                Node current = head; // начинаем с головного узла
+                while (current.Next != null) // ищем последний узел
+                {
+                    current = current.Next; // переходим к следующему узлу
+                }
+                current.Next = newNode; // добавляем новый узел в конец
+            }
+            cnt++; // увеличиваем количество узлов
+        }
+
+        // Метод для вставки узла на указанную позицию
+        public void Insert(int data, int pos)
+        {
+            if (pos < 0 || pos > cnt) // проверяем корректность позиции
+            {
+                return; // если позиция некорректная, выходим
+            }
+
+            Node newNode = new Node(data); // создаем новый узел с данными
+            if (pos == 0) // вставка в начало списка
+            {
+                newNode.Next = head; // новый узел указывает на старую голову
+                head = newNode; // новый узел становится головой
+            }
+            else // вставка в середину или конец
+            {
+                Node current = head; // начинаем с головного узла
+                for (int i = 0; i < pos - 1; i++) // ищем узел перед позицией вставки
+                {
+                    current = current.Next; // переходим к следующему узлу
+                }
+                newNode.Next = current.Next; // новый узел указывает на следующий узел
+                current.Next = newNode; // предыдущий узел указывает на новый узел
+            }
+            cnt++; // увеличиваем количество узлов
+        }
+
+        // Метод для удаления узла на указанной позиции
+        public void Delete(int pos)
+        {
+            if (pos < 0 || pos >= cnt) // проверяем корректность позиции
+            {
+                return; // если позиция некорректная, выходим
+            }
+            if (pos == 0) // удаление головного узла
+            {
+                head = head.Next; // новая голова - следующий узел
+            }
+            else // удаление из середины или конца
+            {
+                Node current = head; // начинаем с головного узла
+                for (int i = 0; i < pos - 1; i++) // ищем узел перед позицией удаления
+                {
+                    current = current.Next; // переходим к следующему узлу
+                }
+                current.Next = current.Next.Next; // пропускаем удаляемый узел
+            }
+            cnt--; // уменьшаем количество узлов
+        }
+
+        // Метод для очистки списка
+        public void Clear()
+        {
+            head = null; // удаляем ссылку на голову
+            cnt = 0; // обнуляем количество узлов
+        }
+
+        // Свойство для получения количества узлов
+        public int Count
+        {
+            get
+            {
+                return cnt; // возвращаем количество узлов
+            }
+        }
+
+        // Индексатор для доступа к элементам списка
+        public int this[int i]
+        {
+            get
+            {
+                Node current = head; // начинаем с головного узла
+                for (int j = 0; j < i; j++) // ищем узел по индексу
+                {
+                    if (current != null) // проверяем, что узел не null
+                    {
+                        current = current.Next; // переходим к следующему узлу
+                    }
+                    else
+                    {
+                        throw new ArgumentOutOfRangeException("Элемент вне диапазона"); // если индекс некорректный, выбрасываем исключение
+                    }
+                }
+                return current.Data; // возвращаем данные узла по индексу
+            }
+            set
+            {
+                Node current = head; // начинаем с головного узла
+                for (int j = 0; j < i; j++) // ищем узел по индексу
+                {
+                    if (current != null) // проверяем, что узел не null
+                    {
+                        current = current.Next; // переходим к следующему узлу
+                    }
+                    else
+                    {
+                        return; // если индекс некорректный, выходим
+                    }
+                }
+                if (current != null) // проверяем, что узел не null
+                {
+                    current.Data = value; // присваиваем новое значение
+                }
+                else
+                {
+                    return; // если узел не существует, выходим
+                }
+            }
+        }
+
+        // Метод для вывода элементов списка
+        public void Print()
+        {
+            Console.WriteLine("ChaiList: "); // выводим заголовок
+            Node current = head; // начинаем с головного узла
+            while (current != null) // проходим по всем узлам
+            {
+                Console.Write(current.Data + " "); // выводим данные узла
+                current = current.Next; // переходим к следующему узлу
+            }
+            Console.WriteLine(); // добавляем новую строку
+        }
+
+        // Метод для удаления дубликатов
+        public void DeleteDuplicates()
+        {
+            for (int i = 0; i < cnt; i++) // перебираем все узлы
+            {
+                int currentElement = this[i]; // текущий элемент
+                bool isDublicate = false; // флаг дубликата
+                for (int j = cnt - 1; j > i; j--) // ищем дубликаты
+                {
+                    if (this[j] == currentElement) // если найден дубликат
+                    {
+                        Delete(j); // удаляем дубликат
+                        isDublicate = true; // устанавливаем флаг
+                    }
+                }
+                if (isDublicate) // если были дубликаты
+                {
+                    Delete(i); // удаляем текущий элемент
+                    i--; // уменьшаем индекс
+                }
+            }
+        }
+    }
+}
