@@ -3,6 +3,8 @@ using System;
 namespace laba1.cs
 {
     using laba1.cs;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Diagnostics.Metrics;
 
     class Program
@@ -23,9 +25,12 @@ namespace laba1.cs
             arrList.Add(1); // добавляем элемент в список
             arrList.Add(2); // добавляем элемент в список
             arrList.Add(3); // добавляем элемент в список
-            arrList.Add(2); // добавляем элемент в список
+            arrList.Add(3); // добавляем элемент в список
             arrList.Add(4); // добавляем элемент в список
             arrList.Add(3); // добавляем элемент в список
+            Console.WriteLine("Элемент с наибольшим количеством повторений: " + arrList.MostRepeatingElement());
+
+            Console.WriteLine();
 
             Console.WriteLine("До удаления дубликатов:");
             arrList.Print(); // выводим элементы списка
@@ -44,9 +49,10 @@ namespace laba1.cs
             chainList.Add(1); // добавляем элемент в список
             chainList.Add(2); // добавляем элемент в список
             chainList.Add(3); // добавляем элемент в список
-            chainList.Add(2); // добавляем элемент в список
+            chainList.Add(3); // добавляем элемент в список
             chainList.Add(4); // добавляем элемент в список
             chainList.Add(3); // добавляем элемент в список
+            Console.WriteLine("Элемент с наибольшим количеством повторений: " + chainList.MostRepeatingElement());
 
             Console.WriteLine("До удаления дубликатов:");
             chainList.Print(); // выводим элементы списка
