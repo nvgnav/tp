@@ -79,7 +79,7 @@ namespace laba1.cs
             }
             else
             {
-                Console.WriteLine($"Листы идентичны"); 
+                Console.WriteLine("Листы одинаковые"); 
             }
         }
     }
