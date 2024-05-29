@@ -13,6 +13,7 @@ namespace laba1.cs
             cnt = 0; // начальное количество элементов
         }
 
+
         public void Add(int el)
         {
             if (cnt >= buffer.Length) // если массив заполнен
@@ -87,7 +88,6 @@ namespace laba1.cs
             }
         }
 
-        // Индексатор для доступа к элементам списка
         public int this[int i]
         {
             get
@@ -98,7 +98,6 @@ namespace laba1.cs
                 }
                 return buffer[i]; // возвращаем элемент по указанному индексу
             }
-
             set
             {
                 if (i >= cnt || i < 0) // проверяем корректность индекса
@@ -111,22 +110,56 @@ namespace laba1.cs
 
         public void DeleteDuplicates()
         {
-            if (cnt <= 0) // проверяем, есть ли элементы в списке
+            // Если в списке 1 или меньше элементов
+            if (cnt <= 1)
             {
-                return; // если нет элементов, выходим из метода
+                return;
             }
-            for (int i = 0; i < cnt; i++) // перебираем все элементы
+            // Идем по каждому элементу списка до предпоследнего
+            for (int i = 0; i < cnt - 1; i++)
             {
-                int currentElement = this[i]; // текущий элемент
-                for (int j = i + 1; j < cnt; j++) // ищем дубликаты текущего элемента
+                int currentElement = buffer[i]; // текущий элемент
+                for (int j = i + 1; j < cnt; j++)
                 {
-                    if (this[j] == currentElement) // если найден дубликат
+                    // Если найден элемент, который равен текущему элементу
+                    if (buffer[j] == currentElement)
                     {
-                        Delete(j); // удаляем дубликат
-                        j--; // уменьшаем индекс, чтобы не пропустить элемент после сдвига
+                        Delete(j); // Удаляем этот элемент
+                        j--; // Уменьшаем j, чтобы не пропустить следующий элемент
                     }
                 }
             }
+        }
+
+        public int MostRepeatingElement()
+        {
+            if (cnt == 0)
+            {
+                throw new InvalidOperationException("пустой список");
+            }
+
+            int[] frequency = new int[cnt];
+
+            for (int i = 0; i < cnt - 1; i++)
+            {
+                int current = buffer[i];
+                frequency[current]++; 
+            }
+
+            int elementWithMaxRepeating = buffer[0];
+            int maxRepeating = frequency[buffer[0]];
+
+            for (int j = 1; j < frequency.Length; j++)
+            {
+                int currentRepeating = frequency[j];
+                if (currentRepeating > maxRepeating)
+                {
+                    maxRepeating = currentRepeating;
+                    elementWithMaxRepeating = j;
+                }
+            }
+            return elementWithMaxRepeating;
+
         }
     }
 }
