@@ -108,10 +108,7 @@ namespace laba1.cs
         // Свойство для получения количества узлов
         public int Count
         {
-            get
-            {
-                return cnt; // возвращаем количество узлов
-            }
+            get { return cnt; }
         }
 
         // Индексатор для доступа к элементам списка
@@ -122,7 +119,7 @@ namespace laba1.cs
                 Node current = head; // начинаем с головного узла
                 for (int j = 0; j < i; j++) // ищем узел по индексу
                 {
-                    if (current != null) // проверяем, что узел не null
+                    if (current != null)
                     {
                         current = current.Next; // переходим к следующему узлу
                     }
@@ -131,20 +128,27 @@ namespace laba1.cs
                         throw new ArgumentOutOfRangeException("Элемент вне диапазона"); // если индекс некорректный, выбрасываем исключение
                     }
                 }
-                return current.Data; // возвращаем данные узла по индексу
+                if (current != null) // проверяем, что узел не null
+                {
+                    return current.Data; // возвращаем данные узла по индексу
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("Элемент вне диапазона"); // если узел не существует, выбрасываем исключение
+                }
             }
             set
             {
                 Node current = head; // начинаем с головного узла
                 for (int j = 0; j < i; j++) // ищем узел по индексу
                 {
-                    if (current != null) // проверяем, что узел не null
+                    if (current != null)
                     {
                         current = current.Next; // переходим к следующему узлу
                     }
                     else
                     {
-                        return; // если индекс некорректный, выходим
+                        throw new ArgumentOutOfRangeException("Элемент вне диапазона"); // если индекс некорректный, выбрасываем исключение
                     }
                 }
                 if (current != null) // проверяем, что узел не null
@@ -153,7 +157,7 @@ namespace laba1.cs
                 }
                 else
                 {
-                    return; // если узел не существует, выходим
+                    throw new ArgumentOutOfRangeException("Элемент вне диапазона"); // если узел не существует, выбрасываем исключение
                 }
             }
         }
@@ -171,27 +175,70 @@ namespace laba1.cs
             Console.WriteLine(); // добавляем новую строку
         }
 
-        // Метод для удаления дубликатов
+        // Метод для удаления дубликатов в списке
         public void DeleteDuplicates()
         {
-            for (int i = 0; i < cnt; i++) // перебираем все узлы
+            if (cnt <= 1) // Если в списке 1 или меньше элементов
             {
-                int currentElement = this[i]; // текущий элемент
-                bool isDublicate = false; // флаг дубликата
-                for (int j = cnt - 1; j > i; j--) // ищем дубликаты
+                return;
+            }
+
+            Node current = head; // Начинаем с головного узла
+
+            // Внешний цикл проходит по каждому элементу списка
+            while (current != null)
+            {
+                Node runner = current; // Устанавливаем бегуна на текущий элемент
+
+                // Внутренний цикл проходит по элементам, которые следуют за текущим
+                while (runner.Next != null)
                 {
-                    if (this[j] == currentElement) // если найден дубликат
+                    // Если найден элемент, который равен текущему элементу
+                    if (runner.Next.Data == current.Data)
                     {
-                        Delete(j); // удаляем дубликат
-                        isDublicate = true; // устанавливаем флаг
+                        runner.Next = runner.Next.Next; // Удаляем следующий элемент, который является дубликатом
+                        cnt--; // Уменьшаем счетчик элементов
+                    }
+                    else
+                    {
+                        runner = runner.Next; // Переходим к следующему элементу
                     }
                 }
-                if (isDublicate) // если были дубликаты
+                current = current.Next; // Переходим к следующему элементу внешнего цикла
+            }
+        }
+
+        public int MostRepeatingElement()
+        {
+            if (cnt == 0)
+            {
+                throw new InvalidOperationException("Список пуст.");
+            }
+
+            int[] frequency = new int[cnt];
+
+            Node current = head;
+            while (current != null)
+            {
+                frequency[current.Data]++;
+                current = current.Next; 
+            }
+
+            int elementWithMaxRepeating = head.Data;
+            int maxRepeating = frequency[head.Data]; 
+
+            for (int j = 1; j < frequency.Length; j++)
+            {
+                if (frequency[j] > maxRepeating)
                 {
-                    Delete(i); // удаляем текущий элемент
-                    i--; // уменьшаем индекс
+                    maxRepeating = frequency[j]; 
+                    elementWithMaxRepeating = j; 
                 }
             }
+
+            return elementWithMaxRepeating; 
         }
     }
 }
+
+
