@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library>
+    <book id="1">
+        <title>Pride and Prejudice</title>
+        <author>John Doe</author>
+        <year>1997</year>
+        <genre>Science</genre>
+        <price currency="USD">20.63</price>
+        <publisher>
+            <name>Classic Books</name>
+            <address>
+                <city>Tokyo</city>
+                <country>Russia</country>
+            </address>
+        </publisher>
+        <reviews>
+            <review>
+                <user>charlie</user>
+                <rating>3</rating>
+                <comment>Excellent content.</comment>
+            </review>
+            <review>
+                <user>dave</user>
+                <rating>1</rating>
+                <comment>Great book!</comment>
+            </review>
+        </reviews>
+        <language>German</language>
+        <awards>
+            <award>Critics' Choice</award>
+            <award>Critics' Choice</award>
+        </awards>
+    </book>
+    <book id="2">
+        <title>Java Programming</title>
+        <author>Joshua Bloch</author>
+        <year>1999</year>
+        <genre>Biography</genre>
+        <price currency="JPY">23.25</price>
+        <format>Print</format>
+        <publisher>
+            <name>Modern Publishing</name>
+            <address>
+                <city>Moscow</city>
+                <country>USA</country>
+            </address>
+        </publisher>
+        <language>Russian</language>
+    </book>
+    <book id="3">
+        <title>Effective Java</title>
+        <author>Joshua Bloch</author>
+        <year>1987</year>
+        <genre>Non-Fiction</genre>
+        <price currency="GBP">10.9</price>
+        <publisher>
+            <name>TechBooks Publishing</name>
+            <address>
+                <city>New York</city>
+                <country>USA</country>
+            </address>
+        </publisher>
+        <reviews>
+            <review>
+                <user>bob</user>
+                <rating>3</rating>
+                <comment>Great book!</comment>
+            </review>
+            <review>
+                <user>eve</user>
+                <rating>3</rating>
+                <comment>Very informative.</comment>
+            </review>
+        </reviews>
+        <awards>
+            <award>Critics' Choice</award>
+            <award>Critics' Choice</award>
+        </awards>
+    </book>
+    <book id="4">
+        <title>Clean Code</title>
+        <author>Jane Austen</author>
+        <year>2012</year>
+        <genre>Biography</genre>
+        <price currency="JPY">61.47</price>
+        <publisher>
+            <name>TechBooks Publishing</name>
+            <address>
+                <city>New York</city>
+                <country>Germany</country>
+            </address>
+        </publisher>
+        <reviews>
+            <review>
+                <user>charlie</user>
+                <rating>3</rating>
+                <comment>Loved the examples.</comment>
+            </review>
+            <review>
+                <user>charlie</user>
+                <rating>2</rating>
+                <comment>Could be better.</comment>
+            </review>
+            <review>
+                <user>charlie</user>
+                <rating>1</rating>
+                <comment>Very informative.</comment>
+            </review>
+        </reviews>
+        <language>Japanese</language>
+    </book>
+    <book id="5">
+        <title>Foundation</title>
+        <author>Robert C. Martin</author>
+        <year>2014</year>
+        <genre>History</genre>
+        <price currency="USD">67.17</price>
+        <isbn>978-5-564511430</isbn>
+        <publisher>
+            <name>Modern Publishing</name>
+            <address>
+                <city>Moscow</city>
+                <country>Germany</country>
+            </address>
+        </publisher>
+        <reviews>
+            <review>
+                <user>charlie</user>
+                <rating>1</rating>
+                <comment>Very informative.</comment>
+            </review>
+            <review>
+                <user>eve</user>
+                <rating>4</rating>
+                <comment>Great book!</comment>
+            </review>
+            <review>
+                <user>alice</user>
+                <rating>1</rating>
+                <comment>Great book!</comment>
+            </review>
+        </reviews>
+        <language>Japanese</language>
+        <awards>
+            <award>Critics' Choice</award>
+        </awards>
+    </book>
+</library>
