@@ -1,0 +1,310 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+public class XmlParser {
+
+    public static void main(String[] args) {
+        try {
+            // Открываем файл с данными о книгах
+            File file = new File("file.xml");
+            // Создаем объект Scanner для чтения файла
+            Scanner scanner = new Scanner(file);
+
+            // Парсим XML-файл и получаем список книг
+            List<Book> books = parserXml(scanner);
+
+            // Выводим информацию о каждой книге
+            for (Book book : books) {
+                System.out.println(book);
+            }
+
+        } catch (FileNotFoundException e) {
+            // Обработка ошибки, если файл не найден
+            System.err.println("File not found: " + e.getMessage());
+        }
+    }
+
+    private static List<Book> parseXml(Scanner scanner) {
+        // Создаем список для хранения информации о книгах
+        List<Book> books = new ArrayList<>();
+        // Инициализируем переменные для обработки текущей книги и тега
+        Book currentBook = null;
+        String currentTag = null;
+        // Сохраняем текущее содержимое обрабатываемого тега
+        String currentContent = "";
+
+        // Проходим по строкам файла
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+
+            // Пропускаем пустые строки и комментарии
+            if (line.trim().isEmpty() || line.startsWith("<!--")) {
+                continue;
+            }
+
+            // Обрабатываем открывающие теги
+            if (line.startsWith("<")) {
+                // Извлекаем имя тега
+                String tag = line.substring(1, line.indexOf(">"));
+                // Проверяем наличие атрибутов в теге
+                if (tag.contains(" ")) {
+                    tag = tag.substring(0, tag.indexOf(" "));
+                }
+
+                // Создаем новую книгу, если встречаем тег <book>
+                if (tag.equals("book")) {
+                    currentBook = new Book();
+                    books.add(currentBook);
+                } else if (tag.equals("title")) {
+                    currentTag = "title";
+                } else if (tag.equals("author")) {
+                    currentTag = "author";
+                } else if (tag.equals("year")) {
+                    currentTag = "year";
+                } else if (tag.equals("genre")) {
+                    currentTag = "genre";
+                } else if (tag.equals("price")) {
+                    currentTag = "price";
+                } else if (tag.equals("publisher")) {
+                    // Создаем объект издателя для текущей книги
+                    currentBook.publisher = new Publisher();
+                    currentTag = "publisher";
+                } else if (tag.equals("name")) {
+                    currentTag = "name";
+                } else if (tag.equals("address")) {
+                    // Создаем объект адреса для издателя
+                    currentBook.publisher.address = new Address();
+                    currentTag = "address";
+                } else if (tag.equals("city")) {
+                    currentTag = "city";
+                } else if (tag.equals("country")) {
+                    currentTag = "country";
+                } else if (tag.equals("reviews")) {
+                    currentTag = "reviews";
+                } else if (tag.equals("review")) {
+                    // Добавляем новый отзыв в список отзывов книги
+                    currentBook.reviews.add(new Review());
+                    currentTag = "review";
+                } else if (tag.equals("user")) {
+                    currentTag = "user";
+                } else if (tag.equals("rating")) {
+                    currentTag = "rating";
+                } else if (tag.equals("comment")) {
+                    currentTag = "comment";
+                } else if (tag.equals("language")) {
+                    currentTag = "language";
+                } else if (tag.equals("awards")) {
+                    currentTag = "awards";
+                } else if (tag.equals("award")) {
+                    // Добавляем новую награду в список наград книги
+                    currentBook.awards.add(new Award());
+                    currentTag = "award";
+                }
+
+                currentContent = "";
+            } else if (line.startsWith("</")) {
+                // Обрабатываем закрывающие теги
+                String closingTag = line.substring(2, line.indexOf(">"));
+                if (closingTag.equals("book")) {
+                    currentBook = null;
+                } else if (closingTag.equals("publisher")) {
+                    currentTag = null;
+                } else if (closingTag.equals("address")) {
+                    currentTag = null;
+                } else if (closingTag.equals("reviews")) {
+                    currentTag = null;
+                } else if (closingTag.equals("review")) {
+                    currentTag = null;
+                } else if (closingTag.equals("awards")) {
+                    currentTag = null;
+                } else if (closingTag.equals("award")) {
+                    currentTag = null;
+                }
+
+                currentTag = null;
+            } else {
+                // Обрабатываем атрибуты
+                if (line.contains("=")) {
+                    String[] parts = line.split("=");
+                    if (parts[0].equals("id")) {
+                        // Записываем ID книги
+                        currentBook.id = Integer.parseInt(parts[1].replaceAll("[^0-9]", ""));
+                    } else if (parts[0].equals("currency")) {
+                        // Записываем валюту цены
+                        currentBook.price.currency = parts[1].replaceAll("[^A-Za-z]", "");
+                    } else if (parts[0].equals("format")) {
+                        // Записываем формат книги
+                        currentBook.format = parts[1].replaceAll("[^A-Za-z]", "");
+                    } else if (parts[0].equals("isbn")) {
+                        // Записываем ISBN книги
+                        currentBook.isbn = parts[1].replaceAll("[^0-9-]", "");
+                    }
+                } else {
+                    // Обрабатываем содержимое тега
+                    if (currentTag != null) {
+                        currentContent += line.trim();
+                        if (currentTag.equals("title")) {
+                            currentBook.title = currentContent;
+                        } else if (currentTag.equals("author")) {
+                            currentBook.author = currentContent;
+                        } else if (currentTag.equals("year")) {
+                            currentBook.year = Integer.parseInt(currentContent);
+                        } else if (currentTag.equals("genre")) {
+                            currentBook.genre = currentContent;
+                        } else if (currentTag.equals("price")) {
+                            currentBook.price.value = Double.parseDouble(currentContent);
+                        } else if (currentTag.equals("name")) {
+                            currentBook.publisher.name = currentContent;
+                        } else if (currentTag.equals("city")) {
+                            currentBook.publisher.address.city = currentContent;
+                        } else if (currentTag.equals("country")) {
+                            currentBook.publisher.address.country = currentContent;
+                        } else if (currentTag.equals("user")) {
+                            // Записываем пользователя, написавшего отзыв
+                            currentBook.reviews.get(currentBook.reviews.size() - 1).user = currentContent;
+                        } else if (currentTag.equals("rating")) {
+                            // Записываем рейтинг
+                            currentBook.reviews.get(currentBook.reviews.size() - 1).rating = Integer.parseInt(currentContent);
+                        } else if (currentTag.equals("comment")) {
+                            // Записываем комментарий к отзыву
+                            currentBook.reviews.get(currentBook.reviews.size() - 1).comment = currentContent;
+                        } else if (currentTag.equals("language")) {
+                            currentBook.language = currentContent;
+                        } else if (currentTag.equals("award")) {
+                            // Записываем название награды
+                            currentBook.awards.get(currentBook.awards.size() - 1).name = currentContent;
+                        }
+                        currentContent = "";
+                        currentTag = null;
+                    }
+                }
+            }
+        }
+
+        // Возвращаем список книг с обработанными данными
+        return books;
+    }
+
+    static class Book {
+        // ID книги
+        int id;
+        // Название книги
+        String title;
+        // Автор книги
+        String author;
+        // Год публикации
+        int year;
+        // Жанр книги
+        String genre;
+        // Цена книги
+        Price price = new Price();
+        // Издатель книги
+        Publisher publisher = new Publisher();
+        // Список отзывов о книге
+        List<Review> reviews = new ArrayList<>();
+        // Язык книги
+        String language;
+        // Список наград, полученных книгой
+        List<Award> awards = new ArrayList<>();
+        // Формат книги (например, "Print")
+        String format;
+        // ISBN книги
+        String isbn;
+
+        @Override
+        public String toString() {
+            return "Book{" +
+                    "id=" + id +
+                    ", title='" + title + '\'' +
+                    ", author='" + author + '\'' +
+                    ", year=" + year +
+                    ", genre='" + genre + '\'' +
+                    ", price=" + price +
+                    ", publisher=" + publisher +
+                    ", reviews=" + reviews +
+                    ", language='" + language + '\'' +
+                    ", awards=" + awards +
+                    ", format='" + format + '\'' +
+                    ", isbn='" + isbn + '\'' +
+                    '}';
+        }
+    }
+
+    static class Price {
+        // Значение цены
+        double value;
+        // Валюта, в которой указана цена
+        String currency;
+
+        @Override
+        public String toString() {
+            return "Price{" +
+                    "value=" + value +
+                    ", currency='" + currency + '\'' +
+                    '}';
+        }
+    }
+
+    static class Publisher {
+        // Название издателя
+        String name;
+        // Адрес издателя
+        Address address = new Address();
+
+        @Override
+        public String toString() {
+            return "Publisher{" +
+                    "name='" + name + '\'' +
+                    ", address=" + address +
+                    '}';
+        }
+    }
+
+    static class Address {
+        // Город, в котором находится издатель
+        String city;
+        // Страна, в которой находится издатель
+        String country;
+
+        @Override
+        public String toString() {
+            return "Address{" +
+                    "city='" + city + '\'' +
+                    ", country='" + country + '\'' +
+                    '}';
+        }
+    }
+
+    static class Review {
+        // Пользователь, написавший отзыв
+        String user;
+        // Рейтинг книги
+        int rating;
+        // Комментарий к отзыву
+        String comment;
+
+        @Override
+        public String toString() {
+            return "Review{" +
+                    "user='" + user + '\'' +
+                    ", rating=" + rating +
+                    ", comment='" + comment + '\'' +
+                    '}';
+        }
+    }
+
+    static class Award {
+        // Название награды, полученной книгой
+        String name;
+
+        @Override
+        public String toString() {
+            return "Award{" +
+                    "name='" + name + '\'' +
+                    '}';
+        }
+    }
+}
