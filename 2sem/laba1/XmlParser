@@ -9,12 +9,12 @@ public class XmlParser {
     public static void main(String[] args) {
         try {
             // Открываем файл с данными о книгах
-            File file = new File("file.xml");
+            File file = new File("C:/Users/allan/OneDrive/Рабочий стол/тп/лаба1/lab1/src/file.xml");
             // Создаем объект Scanner для чтения файла
             Scanner scanner = new Scanner(file);
 
             // Парсим XML-файл и получаем список книг
-            List<Book> books = parserXml(scanner);
+            List<Book> books = parseXml(scanner);
 
             // Выводим информацию о каждой книге
             for (Book book : books) {
