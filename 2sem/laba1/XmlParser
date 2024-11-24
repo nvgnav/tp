@@ -1,310 +1,409 @@
+import org.w3c.dom.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 public class XmlParser {
-
     public static void main(String[] args) {
         try {
-            // Открываем файл с данными о книгах
-            File file = new File("C:/Users/allan/OneDrive/Рабочий стол/тп/лаба1/lab1/src/file.xml");
-            // Создаем объект Scanner для чтения файла
-            Scanner scanner = new Scanner(file);
+            // указываем путь к XML-файлу
+            File file = new File("C:\\Users\\allan\\OneDrive\\Рабочий стол\\тп\\лаба1\\lab1\\src\\file.xml");
 
-            // Парсим XML-файл и получаем список книг
-            List<Book> books = parseXml(scanner);
+            // создаем фабрику и строитель для работы с DOM
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
 
-            // Выводим информацию о каждой книге
+            // загружаем и парсим XML-документ
+            Document document = builder.parse(file);
+
+            // нормализуем документ, чтобы избежать проблем с пустыми текстовыми узлами
+            document.getDocumentElement().normalize();
+
+            // получаем корневой элемент XML-документа
+            Element root = document.getDocumentElement();
+            System.out.println("Корневой элемент: " + root.getNodeName());
+
+            // получаем список всех элементов "book" в XML-документе
+            NodeList bookNodes = document.getElementsByTagName("book");
+
+            // создаем список для хранения книг
+            List<Book> books = new ArrayList<>();
+            // перебираем все элементы "book"
+            for (int i = 0; i < bookNodes.getLength(); i++) {
+                Node node = bookNodes.item(i);
+
+                // проверяем, является ли узел элементом
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    // преобразуем узел в элемент
+                    Element bookElement = (Element) node;
+
+                    // создаем объект книги и заполняем его данными
+                    Book book = new Book();
+                    book.setId(Integer.parseInt(bookElement.getAttribute("id"))); // ID книги
+                    book.setTitle(getTagValue("title", bookElement)); // заголовок
+                    book.setAuthor(getTagValue("author", bookElement)); // автор
+                    book.setYear(Integer.parseInt(getTagValue("year", bookElement))); // год издания
+                    book.setGenre(getTagValue("genre", bookElement)); // жанр
+
+                    // парсим цену
+                    Element priceElement = (Element) bookElement.getElementsByTagName("price").item(0);
+                    if (priceElement != null) {
+                        Price price = new Price();
+                        price.setValue(Double.parseDouble(priceElement.getTextContent())); // значение цены
+                        price.setCurrency(priceElement.getAttribute("currency")); // валюта
+                        book.setPrice(price);
+                    }
+
+                    // парсим издателя
+                    Element publisherElement = (Element) bookElement.getElementsByTagName("publisher").item(0);
+                    if (publisherElement != null) {
+                        Publisher publisher = new Publisher();
+                        publisher.setName(getTagValue("name", publisherElement)); // название издателя
+
+                        // парсим адрес издателя
+                        Element addressElement = (Element) publisherElement.getElementsByTagName("address").item(0);
+                        if (addressElement != null) {
+                            Address address = new Address();
+                            address.setCity(getTagValue("city", addressElement)); // город
+                            address.setCountry(getTagValue("country", addressElement)); // страна
+                            publisher.setAddress(address);
+                        }
+
+                        book.setPublisher(publisher);
+                    }
+
+                    // парсим рецензии
+                    NodeList reviewNodes = bookElement.getElementsByTagName("review");
+                    List<Review> reviews = new ArrayList<>();
+                    for (int j = 0; j < reviewNodes.getLength(); j++) {
+                        Element reviewElement = (Element) reviewNodes.item(j);
+                        Review review = new Review();
+                        review.setUser(getTagValue("user", reviewElement)); // имя пользователя
+                        review.setRating(Integer.parseInt(getTagValue("rating", reviewElement))); // рейтинг
+                        review.setComment(getTagValue("comment", reviewElement)); // комментарий
+                        reviews.add(review);
+                    }
+                    book.setReviews(reviews);
+
+                    // язык книги
+                    book.setLanguage(getTagValue("language", bookElement));
+
+                    // награды книги
+                    NodeList awardNodes = bookElement.getElementsByTagName("award");
+                    List<String> awards = new ArrayList<>();
+                    for (int j = 0; j < awardNodes.getLength(); j++) {
+                        awards.add(awardNodes.item(j).getTextContent()); // добавляем награды
+                    }
+                    book.setAwards(awards);
+
+                    // формат книги
+                    book.setFormat(getTagValue("format", bookElement));
+
+                    // ISBN книги
+                    book.setIsbn(getTagValue("isbn", bookElement));
+
+                    // добавляем книгу в список
+                    books.add(book);
+                }
+            }
+
+            // выводим список всех книг
             for (Book book : books) {
                 System.out.println(book);
             }
 
-        } catch (FileNotFoundException e) {
-            // Обработка ошибки, если файл не найден
-            System.err.println("File not found: " + e.getMessage());
+        } catch (Exception e) {
+            // выводим стек ошибки, если что-то пошло не так
+            e.printStackTrace();
         }
     }
 
-    private static List<Book> parseXml(Scanner scanner) {
-        // Создаем список для хранения информации о книгах
-        List<Book> books = new ArrayList<>();
-        // Инициализируем переменные для обработки текущей книги и тега
-        Book currentBook = null;
-        String currentTag = null;
-        // Сохраняем текущее содержимое обрабатываемого тега
-        String currentContent = "";
-
-        // Проходим по строкам файла
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-
-            // Пропускаем пустые строки и комментарии
-            if (line.trim().isEmpty() || line.startsWith("<!--")) {
-                continue;
-            }
-
-            // Обрабатываем открывающие теги
-            if (line.startsWith("<")) {
-                // Извлекаем имя тега
-                String tag = line.substring(1, line.indexOf(">"));
-                // Проверяем наличие атрибутов в теге
-                if (tag.contains(" ")) {
-                    tag = tag.substring(0, tag.indexOf(" "));
-                }
-
-                // Создаем новую книгу, если встречаем тег <book>
-                if (tag.equals("book")) {
-                    currentBook = new Book();
-                    books.add(currentBook);
-                } else if (tag.equals("title")) {
-                    currentTag = "title";
-                } else if (tag.equals("author")) {
-                    currentTag = "author";
-                } else if (tag.equals("year")) {
-                    currentTag = "year";
-                } else if (tag.equals("genre")) {
-                    currentTag = "genre";
-                } else if (tag.equals("price")) {
-                    currentTag = "price";
-                } else if (tag.equals("publisher")) {
-                    // Создаем объект издателя для текущей книги
-                    currentBook.publisher = new Publisher();
-                    currentTag = "publisher";
-                } else if (tag.equals("name")) {
-                    currentTag = "name";
-                } else if (tag.equals("address")) {
-                    // Создаем объект адреса для издателя
-                    currentBook.publisher.address = new Address();
-                    currentTag = "address";
-                } else if (tag.equals("city")) {
-                    currentTag = "city";
-                } else if (tag.equals("country")) {
-                    currentTag = "country";
-                } else if (tag.equals("reviews")) {
-                    currentTag = "reviews";
-                } else if (tag.equals("review")) {
-                    // Добавляем новый отзыв в список отзывов книги
-                    currentBook.reviews.add(new Review());
-                    currentTag = "review";
-                } else if (tag.equals("user")) {
-                    currentTag = "user";
-                } else if (tag.equals("rating")) {
-                    currentTag = "rating";
-                } else if (tag.equals("comment")) {
-                    currentTag = "comment";
-                } else if (tag.equals("language")) {
-                    currentTag = "language";
-                } else if (tag.equals("awards")) {
-                    currentTag = "awards";
-                } else if (tag.equals("award")) {
-                    // Добавляем новую награду в список наград книги
-                    currentBook.awards.add(new Award());
-                    currentTag = "award";
-                }
-
-                currentContent = "";
-            } else if (line.startsWith("</")) {
-                // Обрабатываем закрывающие теги
-                String closingTag = line.substring(2, line.indexOf(">"));
-                if (closingTag.equals("book")) {
-                    currentBook = null;
-                } else if (closingTag.equals("publisher")) {
-                    currentTag = null;
-                } else if (closingTag.equals("address")) {
-                    currentTag = null;
-                } else if (closingTag.equals("reviews")) {
-                    currentTag = null;
-                } else if (closingTag.equals("review")) {
-                    currentTag = null;
-                } else if (closingTag.equals("awards")) {
-                    currentTag = null;
-                } else if (closingTag.equals("award")) {
-                    currentTag = null;
-                }
-
-                currentTag = null;
-            } else {
-                // Обрабатываем атрибуты
-                if (line.contains("=")) {
-                    String[] parts = line.split("=");
-                    if (parts[0].equals("id")) {
-                        // Записываем ID книги
-                        currentBook.id = Integer.parseInt(parts[1].replaceAll("[^0-9]", ""));
-                    } else if (parts[0].equals("currency")) {
-                        // Записываем валюту цены
-                        currentBook.price.currency = parts[1].replaceAll("[^A-Za-z]", "");
-                    } else if (parts[0].equals("format")) {
-                        // Записываем формат книги
-                        currentBook.format = parts[1].replaceAll("[^A-Za-z]", "");
-                    } else if (parts[0].equals("isbn")) {
-                        // Записываем ISBN книги
-                        currentBook.isbn = parts[1].replaceAll("[^0-9-]", "");
-                    }
-                } else {
-                    // Обрабатываем содержимое тега
-                    if (currentTag != null) {
-                        currentContent += line.trim();
-                        if (currentTag.equals("title")) {
-                            currentBook.title = currentContent;
-                        } else if (currentTag.equals("author")) {
-                            currentBook.author = currentContent;
-                        } else if (currentTag.equals("year")) {
-                            currentBook.year = Integer.parseInt(currentContent);
-                        } else if (currentTag.equals("genre")) {
-                            currentBook.genre = currentContent;
-                        } else if (currentTag.equals("price")) {
-                            currentBook.price.value = Double.parseDouble(currentContent);
-                        } else if (currentTag.equals("name")) {
-                            currentBook.publisher.name = currentContent;
-                        } else if (currentTag.equals("city")) {
-                            currentBook.publisher.address.city = currentContent;
-                        } else if (currentTag.equals("country")) {
-                            currentBook.publisher.address.country = currentContent;
-                        } else if (currentTag.equals("user")) {
-                            // Записываем пользователя, написавшего отзыв
-                            currentBook.reviews.get(currentBook.reviews.size() - 1).user = currentContent;
-                        } else if (currentTag.equals("rating")) {
-                            // Записываем рейтинг
-                            currentBook.reviews.get(currentBook.reviews.size() - 1).rating = Integer.parseInt(currentContent);
-                        } else if (currentTag.equals("comment")) {
-                            // Записываем комментарий к отзыву
-                            currentBook.reviews.get(currentBook.reviews.size() - 1).comment = currentContent;
-                        } else if (currentTag.equals("language")) {
-                            currentBook.language = currentContent;
-                        } else if (currentTag.equals("award")) {
-                            // Записываем название награды
-                            currentBook.awards.get(currentBook.awards.size() - 1).name = currentContent;
-                        }
-                        currentContent = "";
-                        currentTag = null;
-                    }
-                }
+    // вспомогательный метод для получения текста из элемента XML
+    private static String getTagValue(String tag, Element element) {
+        NodeList nodeList = element.getElementsByTagName(tag);
+        if (nodeList.getLength() > 0) {
+            Node node = nodeList.item(0);
+            if (node != null) {
+                return node.getTextContent(); // возвращаем текстовое содержимое узла
             }
         }
+        return null; // если элемент не найден, возвращаем null
+    }
+}
 
-        // Возвращаем список книг с обработанными данными
-        return books;
+// класс для описания книги
+class Book {
+    private int id;
+    private String title;
+    private String author;
+    private int year;
+    private String genre;
+    private Price price;
+    private Publisher publisher;
+    private List<Review> reviews;
+    private String language;
+    private List<String> awards;
+    private String format;
+    private String isbn;
+
+    // геттеры и сеттеры для всех полей
+
+    public int getId() {
+        return id;
     }
 
-    static class Book {
-        // ID книги
-        int id;
-        // Название книги
-        String title;
-        // Автор книги
-        String author;
-        // Год публикации
-        int year;
-        // Жанр книги
-        String genre;
-        // Цена книги
-        Price price = new Price();
-        // Издатель книги
-        Publisher publisher = new Publisher();
-        // Список отзывов о книге
-        List<Review> reviews = new ArrayList<>();
-        // Язык книги
-        String language;
-        // Список наград, полученных книгой
-        List<Award> awards = new ArrayList<>();
-        // Формат книги (например, "Print")
-        String format;
-        // ISBN книги
-        String isbn;
-
-        @Override
-        public String toString() {
-            return "Book{" +
-                    "id=" + id +
-                    ", title='" + title + '\'' +
-                    ", author='" + author + '\'' +
-                    ", year=" + year +
-                    ", genre='" + genre + '\'' +
-                    ", price=" + price +
-                    ", publisher=" + publisher +
-                    ", reviews=" + reviews +
-                    ", language='" + language + '\'' +
-                    ", awards=" + awards +
-                    ", format='" + format + '\'' +
-                    ", isbn='" + isbn + '\'' +
-                    '}';
-        }
+    public void setId(int id) {
+        this.id = id;
     }
 
-    static class Price {
-        // Значение цены
-        double value;
-        // Валюта, в которой указана цена
-        String currency;
-
-        @Override
-        public String toString() {
-            return "Price{" +
-                    "value=" + value +
-                    ", currency='" + currency + '\'' +
-                    '}';
-        }
+    public String getTitle() {
+        return title;
     }
 
-    static class Publisher {
-        // Название издателя
-        String name;
-        // Адрес издателя
-        Address address = new Address();
-
-        @Override
-        public String toString() {
-            return "Publisher{" +
-                    "name='" + name + '\'' +
-                    ", address=" + address +
-                    '}';
-        }
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    static class Address {
-        // Город, в котором находится издатель
-        String city;
-        // Страна, в которой находится издатель
-        String country;
-
-        @Override
-        public String toString() {
-            return "Address{" +
-                    "city='" + city + '\'' +
-                    ", country='" + country + '\'' +
-                    '}';
-        }
+    public String getAuthor() {
+        return author;
     }
 
-    static class Review {
-        // Пользователь, написавший отзыв
-        String user;
-        // Рейтинг книги
-        int rating;
-        // Комментарий к отзыву
-        String comment;
-
-        @Override
-        public String toString() {
-            return "Review{" +
-                    "user='" + user + '\'' +
-                    ", rating=" + rating +
-                    ", comment='" + comment + '\'' +
-                    '}';
-        }
+    public void setAuthor(String author) {
+        this.author = author;
     }
 
-    static class Award {
-        // Название награды, полученной книгой
-        String name;
+    public int getYear() {
+        return year;
+    }
 
-        @Override
-        public String toString() {
-            return "Award{" +
-                    "name='" + name + '\'' +
-                    '}';
-        }
+    public void setYear(int year) {
+        this.year = year;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
+
+    public Price getPrice() {
+        return price;
+    }
+
+    public void setPrice(Price price) {
+        this.price = price;
+    }
+
+    public Publisher getPublisher() {
+        return publisher;
+    }
+
+    public void setPublisher(Publisher publisher) {
+        this.publisher = publisher;
+    }
+
+    public List<Review> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public List<String> getAwards() {
+        return awards;
+    }
+
+    public void setAwards(List<String> awards) {
+        this.awards = awards;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
+    }
+
+    // переопределяем метод toString для вывода информации о книге
+    @Override
+    public String toString() {
+        return "Book{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", author='" + author + '\'' +
+                ", year=" + year +
+                ", genre='" + genre + '\'' +
+                ", price=" + price +
+                ", publisher=" + publisher +
+                ", reviews=" + reviews +
+                ", language='" + language + '\'' +
+                ", awards=" + awards +
+                ", format='" + format + '\'' +
+                ", isbn='" + isbn + '\'' +
+                '}';
+    }
+}
+
+// класс для описания цены
+class Price {
+    private double value;
+    private String currency;
+
+    // геттеры и сеттеры для полей цены
+
+    public double getValue() {
+        return value;
+    }
+
+    public void setValue(double value) {
+        this.value = value;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    // переопределяем метод toString для вывода информации о цене
+    @Override
+    public String toString() {
+        return "Price{" +
+                "value=" + value +
+                ", currency='" + currency + '\'' +
+                '}';
+    }
+}
+
+// класс для описания издателя
+class Publisher {
+    private String name;
+    private Address address;
+
+    // геттеры и сеттеры для полей издателя
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    // переопределяем метод toString для вывода информации об издателе
+    @Override
+    public String toString() {
+        return "Publisher{" +
+                "name='" + name + '\'' +
+                ", address=" + address +
+                '}';
+    }
+}
+
+// класс для описания адреса издателя
+class Address {
+    private String city;
+    private String country;
+
+    // геттеры и сеттеры для полей адреса
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    // переопределяем метод toString для вывода информации об адресе
+    @Override
+    public String toString() {
+        return "Address{" +
+                "city='" + city + '\'' +
+                ", country='" + country + '\'' +
+                '}';
+    }
+}
+
+// класс для описания рецензии
+class Review {
+    private String user;
+    private int rating;
+    private String comment;
+
+    // геттеры и сеттеры для полей рецензии
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    // переопределяем метод toString для вывода информации о рецензии
+    @Override
+    public String toString() {
+        return "Review{" +
+                "user='" + user + '\'' +
+                ", rating=" + rating +
+                ", comment='" + comment + '\'' +
+                '}';
     }
 }
